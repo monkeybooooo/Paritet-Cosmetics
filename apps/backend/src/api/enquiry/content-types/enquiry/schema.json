@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "enquiries",
+  "info": {
+    "singularName": "enquiry",
+    "pluralName": "enquiries",
+    "displayName": "Enquiry "
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "enquiryStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "new",
+      "enum": [
+        "new",
+        "in_progress",
+        "done ",
+        "rejected "
+      ]
+    },
+    "message": {
+      "type": "text"
+    },
+    "snapshot": {
+      "type": "json",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "enquiries"
+    },
+    "items": {
+      "type": "component",
+      "component": "product.item",
+      "repeatable": true,
+      "required": true
+    }
+  }
+}

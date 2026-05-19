@@ -1,0 +1,45 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Strapi application",
+  "scripts": {
+    "build": "strapi build",
+    "console": "strapi console",
+    "deploy": "strapi deploy",
+    "dev": "strapi develop",
+    "develop": "strapi develop",
+    "lifestyle:import:dry": "node scripts/import-lifestyle-amenities.js",
+    "lifestyle:import": "node scripts/import-lifestyle-amenities.js --apply",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "luxury:import:dry": "node scripts/import-luxury-collection.js",
+    "luxury:import": "node scripts/import-luxury-collection.js --apply",
+    "upgrade": "npx @strapi/upgrade latest",
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "5.33.4",
+    "@strapi/plugin-users-permissions": "5.33.4",
+    "@strapi/strapi": "5.33.4",
+    "pg": "8.8.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0 <=24.x.x",
+    "npm": ">=6.0.0"
+  },
+  "strapi": {
+    "uuid": "f40bf0d8-e784-4e97-86fd-2718fd56eca7",
+    "installId": "67a2285568acef131fac0d2af3ba14823e79364be1fcbdeb66ba6ebd9660f226"
+  }
+}

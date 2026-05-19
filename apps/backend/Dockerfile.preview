@@ -1,0 +1,19 @@
+FROM node:20-bookworm-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN mkdir -p /app/public/uploads-seed && cp -a /app/public/uploads/. /app/public/uploads-seed/
+RUN npm run build
+
+COPY scripts/preview-start.sh /usr/local/bin/preview-start.sh
+RUN chmod +x /usr/local/bin/preview-start.sh
+
+ENV NODE_ENV=production
+
+EXPOSE 1337
+
+CMD ["preview-start.sh"]

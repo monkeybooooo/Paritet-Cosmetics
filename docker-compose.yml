@@ -1,0 +1,15 @@
+  services:
+    postgres:
+      image: postgres:16
+      container_name: paritet_postgres
+      environment:
+        POSTGRES_DB: paritet
+        POSTGRES_USER: paritet
+        POSTGRES_PASSWORD: paritet123123
+      ports:
+        - "5432:5432"
+      volumes:
+        - paritet_pgdata:/var/lib/postgresql/data
+
+  volumes:
+    paritet_pgdata:

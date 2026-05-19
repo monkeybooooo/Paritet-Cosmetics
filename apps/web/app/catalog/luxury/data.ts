@@ -1,0 +1,420 @@
+interface StrapiMediaFormat {
+  url?: string | null;
+}
+
+interface StrapiMedia {
+  url?: string | null;
+  formats?: {
+    large?: StrapiMediaFormat;
+    medium?: StrapiMediaFormat;
+    small?: StrapiMediaFormat;
+    thumbnail?: StrapiMediaFormat;
+  } | null;
+  attributes?: {
+    url?: string | null;
+    formats?: {
+      large?: StrapiMediaFormat;
+      medium?: StrapiMediaFormat;
+      small?: StrapiMediaFormat;
+      thumbnail?: StrapiMediaFormat;
+    } | null;
+  } | null;
+}
+
+interface ProductVariant {
+  value?: number | null;
+  unit?: string | null;
+  package_label?: string | null;
+  product_shots?: StrapiMedia | StrapiMedia[] | { data?: StrapiMedia | StrapiMedia[] | null } | null;
+}
+
+interface ProductEntity {
+  id: number;
+  name?: string | null;
+  slug?: string | null;
+  description?: any;
+  brand?: {
+    id: number;
+    name?: string | null;
+    description_ru?: any;
+    description_en?: any;
+  } | null;
+  collection?: {
+    id: number;
+    name?: string | null;
+  } | null;
+  brandCollection?: {
+    id: number;
+    name?: string | null;
+    description_ru?: any;
+    Description_ru?: any;
+    brand?: {
+      id: number;
+      name?: string | null;
+      description_ru?: any;
+      description_en?: any;
+    } | null;
+  } | null;
+  gallery?: StrapiMedia[] | { data?: StrapiMedia[] | StrapiMedia | null } | null;
+  variants?: ProductVariant[] | null;
+}
+
+export interface LuxuryProduct {
+  id: number;
+  sourceProductId: number;
+  sourceProductSlug: string;
+  name: string;
+  slug: string;
+  variantIndex: number;
+  brandId: number;
+  brandName: string;
+  brandSlug: string;
+  volumeLabel: string;
+  description: string;
+  packageLabel: string;
+  imageUrl: string | null;
+}
+
+export interface LuxuryBrand {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+function normalize(value: string | null | undefined): string {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+export function slugifyBrand(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9а-яё]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function toAbsoluteMediaUrl(url: string | null | undefined, strapiUrl: string): string | null {
+  if (!url) return null;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  try {
+    return new URL(url, strapiUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+function extractMediaArray(value: unknown): StrapiMedia[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value as StrapiMedia[];
+  if (typeof value === "object" && "data" in (value as any)) {
+    const data = (value as any).data;
+    if (!data) return [];
+    return Array.isArray(data) ? (data as StrapiMedia[]) : [data as StrapiMedia];
+  }
+  return [value as StrapiMedia];
+}
+
+function pickBestUrlFromMediaItem(media: StrapiMedia | undefined, strapiUrl: string): string | null {
+  if (!media) return null;
+  const src = media.attributes ?? media;
+  return (
+    toAbsoluteMediaUrl(src.formats?.large?.url, strapiUrl) ||
+    toAbsoluteMediaUrl(src.formats?.medium?.url, strapiUrl) ||
+    toAbsoluteMediaUrl(src.formats?.small?.url, strapiUrl) ||
+    toAbsoluteMediaUrl(src.url, strapiUrl)
+  );
+}
+
+function isLuxuryProduct(product: ProductEntity): boolean {
+  const collectionName = normalize(product.collection?.name);
+  const brandCollectionName = normalize(product.brandCollection?.name);
+  return (
+    collectionName.includes("luxury") ||
+    collectionName.includes("премиум") ||
+    collectionName.includes("люкс") ||
+    brandCollectionName.includes("luxury") ||
+    brandCollectionName.includes("премиум") ||
+    brandCollectionName.includes("люкс")
+  );
+}
+
+function collectTextFragments(node: any): string[] {
+  if (!node) return [];
+  if (typeof node === "string") return [node.trim()].filter(Boolean);
+  if (Array.isArray(node)) return node.flatMap((item) => collectTextFragments(item));
+  if (typeof node !== "object") return [];
+
+  const ownText = typeof node.text === "string" ? node.text.trim() : "";
+  const nestedChildren = collectTextFragments(node.children);
+  return [ownText, ...nestedChildren].filter(Boolean);
+}
+
+function extractDescriptionText(descriptionBlocks: any): string {
+  if (!descriptionBlocks) return "";
+
+  if (typeof descriptionBlocks === "string") {
+    return descriptionBlocks.trim();
+  }
+
+  if (!Array.isArray(descriptionBlocks)) {
+    return collectTextFragments(descriptionBlocks).join(" ").replace(/\s+/g, " ").trim();
+  }
+
+  const lines = descriptionBlocks
+    .map((block: any) => collectTextFragments(block).join(" ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  return lines.join("\n");
+}
+
+function buildVolumeLabel(product: ProductEntity): string {
+  const variant = product.variants?.find((item) => item?.value && item?.unit);
+  if (!variant?.value || !variant?.unit) return "Объём уточняется";
+  return `${variant.value} ${String(variant.unit).trim()}`;
+}
+
+function buildVariantVolumeLabel(variant: ProductVariant): string {
+  if (!variant?.value || !variant?.unit) return "Объём уточняется";
+  return `${variant.value} ${String(variant.unit).trim()}`;
+}
+
+function isRrrSignature(brandName: string, productName: string, sourceProductSlug: string): boolean {
+  const signature = `${brandName} ${productName} ${sourceProductSlug}`.toLowerCase();
+  return (
+    signature.includes("relax refresh revive") || signature.includes("relax-refresh-revive") || signature.includes("rrr")
+  );
+}
+
+function normalizeRrrVolumeLabel(
+  volumeLabel: string,
+  brandName: string,
+  productName: string,
+  sourceProductSlug: string
+): string {
+  if (!isRrrSignature(brandName, productName, sourceProductSlug)) return volumeLabel;
+  const normalized = volumeLabel.toLowerCase().replace(/\s+/g, "");
+  if (normalized === "30ml" || normalized === "30мл") return "35 ml";
+  return volumeLabel;
+}
+
+function isPlaceholderVolume(volumeLabel: string): boolean {
+  const normalized = volumeLabel.toLowerCase().replace(/\s+/g, "");
+  return normalized === "3л" || normalized === "3l" || normalized === "5л" || normalized === "5l";
+}
+
+function getVariantVolumeValue(variant: ProductVariant): number {
+  const raw = variant?.value;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+}
+
+function buildProductImageUrl(product: ProductEntity, strapiUrl: string, variant?: ProductVariant): string | null {
+  const variantMediaList = extractMediaArray(variant?.product_shots);
+  const variantShot = pickBestUrlFromMediaItem(variantMediaList[0], strapiUrl);
+  if (variantShot) return variantShot;
+
+  const firstVariantWithPhoto = product.variants?.find((item) => item?.product_shots);
+  const firstVariantMediaList = extractMediaArray(firstVariantWithPhoto?.product_shots);
+  const firstVariantShot = pickBestUrlFromMediaItem(firstVariantMediaList[0], strapiUrl);
+  if (firstVariantShot) return firstVariantShot;
+
+  const galleryMediaList = extractMediaArray(product.gallery);
+  const galleryShot = pickBestUrlFromMediaItem(galleryMediaList[0], strapiUrl);
+  if (galleryShot) return galleryShot;
+
+  return null;
+}
+
+function resolveBrandName(product: ProductEntity): string | null {
+  const name = product.brand?.name?.trim() || product.brandCollection?.brand?.name?.trim() || "";
+  return name || null;
+}
+
+function resolveBrandDescription(product: ProductEntity): string {
+  const brandDescription =
+    extractDescriptionText(product.brand?.description_ru) ||
+    extractDescriptionText(product.brandCollection?.brand?.description_ru);
+  return brandDescription;
+}
+
+function resolveCollectionDescription(product: ProductEntity): string {
+  return (
+    extractDescriptionText(product.brandCollection?.Description_ru) ||
+    extractDescriptionText(product.brandCollection?.description_ru)
+  );
+}
+
+function shouldUseCollectionDescriptionForBrand(brandName: string): boolean {
+  const normalized = normalize(brandName);
+  return normalized === "amouage" || normalized === "chopard";
+}
+
+function resolveBrandIdentity(product: ProductEntity): { id: number; name: string } | null {
+  const id = product.brand?.id || product.brandCollection?.brand?.id;
+  const name = resolveBrandName(product);
+  if (!id || !name) return null;
+  return { id, name };
+}
+
+function buildBrandRouteSlug(brandId: number, brandName: string): string {
+  const nameSlug = slugifyBrand(brandName);
+  return nameSlug ? `${brandId}-${nameSlug}` : String(brandId);
+}
+
+function parseBrandIdFromRouteSlug(brandSlug: string): number | null {
+  const match = brandSlug.match(/^(\d+)(?:-|$)/);
+  if (!match) return null;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export async function fetchLuxuryProducts(): Promise<LuxuryProduct[]> {
+  const publicStrapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+  const internalStrapiUrl = process.env.STRAPI_INTERNAL_URL;
+  const candidateDataUrls = Array.from(new Set([internalStrapiUrl, publicStrapiUrl].filter(Boolean) as string[]));
+  if (!candidateDataUrls.length) return [];
+
+  const pageSize = 200;
+  let rows: ProductEntity[] = [];
+  let activeDataUrl = candidateDataUrls[0];
+
+  for (const baseUrl of candidateDataUrls) {
+    const nextRows: ProductEntity[] = [];
+    let page = 1;
+    let keepLoading = true;
+
+    try {
+      while (keepLoading) {
+        const res = await fetch(`${baseUrl}/api/products-public?pageSize=${pageSize}&page=${page}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const payload = await res.json();
+        const chunk: ProductEntity[] = Array.isArray(payload?.data) ? payload.data : [];
+        nextRows.push(...chunk);
+
+        if (chunk.length < pageSize) keepLoading = false;
+        else page += 1;
+      }
+
+      rows = nextRows;
+      activeDataUrl = baseUrl;
+      break;
+    } catch {
+      rows = [];
+    }
+  }
+  if (!rows.length) return [];
+  const strapiMediaUrl = publicStrapiUrl || activeDataUrl;
+
+  const collectionDescriptionById = new Map<number, string>();
+  for (const product of rows) {
+    const collectionId = product.brandCollection?.id;
+    if (!collectionId || collectionDescriptionById.has(collectionId)) continue;
+    const description = resolveCollectionDescription(product);
+    if (description) collectionDescriptionById.set(collectionId, description);
+  }
+
+  return rows
+    .filter(isLuxuryProduct)
+    .flatMap((product) => {
+      const brand = resolveBrandIdentity(product);
+      if (!brand) return [];
+      const name = product.name?.trim() || "Товар без названия";
+      const variants = Array.isArray(product.variants) ? [...product.variants] : [];
+      variants.sort((a, b) => getVariantVolumeValue(a) - getVariantVolumeValue(b));
+      const collectionId = product.brandCollection?.id;
+      const collectionDescription = collectionId ? collectionDescriptionById.get(collectionId) || "" : "";
+      const baseDescription = shouldUseCollectionDescriptionForBrand(brand.name)
+        ? collectionDescription || resolveBrandDescription(product)
+        : resolveBrandDescription(product);
+
+      if (!variants.length) {
+        const sourceProductSlug = product.slug?.trim() || String(product.id);
+        const volumeLabel = normalizeRrrVolumeLabel(buildVolumeLabel(product), brand.name, name, sourceProductSlug);
+        const imageUrl = isPlaceholderVolume(volumeLabel)
+          ? "/photo4.webp"
+          : buildProductImageUrl(product, strapiMediaUrl);
+        if (!imageUrl) return [];
+        return [
+          {
+            id: product.id,
+            sourceProductId: product.id,
+            sourceProductSlug,
+            name,
+            slug: sourceProductSlug,
+            variantIndex: 0,
+            brandId: brand.id,
+            brandName: brand.name,
+            brandSlug: buildBrandRouteSlug(brand.id, brand.name),
+            volumeLabel,
+            description: baseDescription,
+            packageLabel: "",
+            imageUrl,
+          },
+        ];
+      }
+
+      return variants.reduce<LuxuryProduct[]>((acc, variant, index) => {
+        const sourceProductSlug = product.slug?.trim() || String(product.id);
+        const volumeLabel = normalizeRrrVolumeLabel(
+          buildVariantVolumeLabel(variant),
+          brand.name,
+          name,
+          sourceProductSlug
+        );
+        const imageUrl = isPlaceholderVolume(volumeLabel)
+          ? "/photo4.webp"
+          : buildProductImageUrl(product, strapiMediaUrl, variant);
+        if (!imageUrl) return acc;
+
+        acc.push({
+          id: product.id * 1000 + (index + 1),
+          sourceProductId: product.id,
+          sourceProductSlug,
+          name,
+          slug: `${sourceProductSlug}-${index + 1}`,
+          variantIndex: index + 1,
+          brandId: brand.id,
+          brandName: brand.name,
+          brandSlug: buildBrandRouteSlug(brand.id, brand.name),
+          volumeLabel,
+          description: baseDescription,
+          packageLabel: variant.package_label?.trim() || "",
+          imageUrl,
+        });
+
+        return acc;
+      }, []);
+    });
+}
+
+export async function fetchLuxuryBrands(): Promise<LuxuryBrand[]> {
+  const products = await fetchLuxuryProducts();
+  return Array.from(
+    new Map(products.map((p) => [p.brandId, { id: p.brandId, name: p.brandName, slug: p.brandSlug }])).values()
+  );
+}
+
+export async function fetchLuxuryBrandProducts(brandSlug: string): Promise<LuxuryProduct[]> {
+  const products = await fetchLuxuryProducts();
+  const routeBrandId = parseBrandIdFromRouteSlug(brandSlug);
+  if (routeBrandId) return products.filter((product) => product.brandId === routeBrandId);
+  return products.filter((product) => product.brandSlug === brandSlug);
+}
+
+export async function fetchLuxuryProductBySlug(brandSlug: string, productSlug: string): Promise<LuxuryProduct | null> {
+  const products = await fetchLuxuryBrandProducts(brandSlug);
+  return products.find((product) => product.slug === productSlug) ?? null;
+}
+
+export async function fetchLuxuryRelatedProducts(brandSlug: string, sourceProductSlug: string): Promise<LuxuryProduct[]> {
+  const products = await fetchLuxuryBrandProducts(brandSlug);
+  return products.filter((product) => product.sourceProductSlug === sourceProductSlug);
+}
+
+export async function fetchLuxuryHeroImage(): Promise<string> {
+  return "/photo3.webp";
+}

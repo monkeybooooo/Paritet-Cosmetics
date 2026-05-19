@@ -1,0 +1,42 @@
+{
+  "collectionName": "components_product_variants",
+  "info": {
+    "displayName": "variants"
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "integer",
+      "required": true
+    },
+    "unit": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "ml",
+        "ml ",
+        "g",
+        "l"
+      ]
+    },
+    "package_label": {
+      "type": "string"
+    },
+    "is_dispenser_system": {
+      "type": "boolean",
+      "default": false
+    },
+    "product_shots": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  },
+  "config": {}
+}

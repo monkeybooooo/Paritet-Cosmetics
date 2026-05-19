@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "brand_collections",
+  "info": {
+    "singularName": "brand-collection",
+    "pluralName": "brand-collections",
+    "displayName": "Brand Collection"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "brand": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::brand.brand",
+      "inversedBy": "brandCollections"
+    },
+    "products": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product.product",
+      "mappedBy": "brandCollection"
+    },
+    "Description_ru": {
+      "type": "blocks",
+      "required": true
+    }
+  }
+}

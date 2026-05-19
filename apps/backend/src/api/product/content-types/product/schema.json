@@ -1,0 +1,97 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "brand": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::brand.brand",
+      "inversedBy": "products"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "mappedBy": "products"
+    },
+    "gallery": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "videos",
+        "images"
+      ]
+    },
+    "description": {
+      "type": "blocks",
+      "required": true
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_textile": {
+      "type": "boolean",
+      "default": false
+    },
+    "textile_material": {
+      "type": "string"
+    },
+    "textile_size": {
+      "type": "string"
+    },
+    "textile_color": {
+      "type": "string"
+    },
+    "textile_density": {
+      "type": "string"
+    },
+    "textile_design": {
+      "type": "string"
+    },
+    "textile_loop_type": {
+      "type": "string"
+    },
+    "textile_country": {
+      "type": "string"
+    },
+    "textile_pack_qty": {
+      "type": "integer"
+    },
+    "variants": {
+      "type": "component",
+      "component": "product.variants",
+      "repeatable": true
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "products"
+    },
+    "brandCollection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::brand-collection.brand-collection",
+      "inversedBy": "products"
+    }
+  }
+}

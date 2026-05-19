@@ -1,0 +1,21 @@
+{$PREVIEW_SITE_ADDRESS:localhost} {
+  basic_auth {
+    {$PREVIEW_BASIC_AUTH_USER:client} {$PREVIEW_BASIC_AUTH_PASSWORD_HASH}
+  }
+
+  encode zstd gzip
+
+  @next_api path /api/brands /api/brands/*
+  handle @next_api {
+    reverse_proxy web:3000
+  }
+
+  @strapi path /api/* /admin* /uploads/* /graphql* /documentation* /content-manager* /content-type-builder* /users-permissions* /i18n*
+  handle @strapi {
+    reverse_proxy backend:1337
+  }
+
+  handle {
+    reverse_proxy web:3000
+  }
+}
