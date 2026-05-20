@@ -32,12 +32,12 @@ interface ProductEntity {
   id: number;
   name?: string | null;
   slug?: string | null;
-  description?: any;
+  description?: unknown;
   brand?: {
     id: number;
     name?: string | null;
-    description_ru?: any;
-    description_en?: any;
+    description_ru?: unknown;
+    description_en?: unknown;
   } | null;
   collection?: {
     id: number;
@@ -46,13 +46,13 @@ interface ProductEntity {
   brandCollection?: {
     id: number;
     name?: string | null;
-    description_ru?: any;
-    Description_ru?: any;
+    description_ru?: unknown;
+    Description_ru?: unknown;
     brand?: {
       id: number;
       name?: string | null;
-      description_ru?: any;
-      description_en?: any;
+      description_ru?: unknown;
+      description_en?: unknown;
     } | null;
   } | null;
   gallery?: StrapiMedia[] | { data?: StrapiMedia[] | StrapiMedia | null } | null;
@@ -139,18 +139,24 @@ function isLuxuryProduct(product: ProductEntity): boolean {
   );
 }
 
-function collectTextFragments(node: any): string[] {
+type RichTextNode = {
+  text?: string;
+  children?: unknown;
+};
+
+function collectTextFragments(node: unknown): string[] {
   if (!node) return [];
   if (typeof node === "string") return [node.trim()].filter(Boolean);
   if (Array.isArray(node)) return node.flatMap((item) => collectTextFragments(item));
   if (typeof node !== "object") return [];
 
-  const ownText = typeof node.text === "string" ? node.text.trim() : "";
-  const nestedChildren = collectTextFragments(node.children);
+  const typedNode = node as RichTextNode;
+  const ownText = typeof typedNode.text === "string" ? typedNode.text.trim() : "";
+  const nestedChildren = collectTextFragments(typedNode.children);
   return [ownText, ...nestedChildren].filter(Boolean);
 }
 
-function extractDescriptionText(descriptionBlocks: any): string {
+function extractDescriptionText(descriptionBlocks: unknown): string {
   if (!descriptionBlocks) return "";
 
   if (typeof descriptionBlocks === "string") {
@@ -162,7 +168,7 @@ function extractDescriptionText(descriptionBlocks: any): string {
   }
 
   const lines = descriptionBlocks
-    .map((block: any) => collectTextFragments(block).join(" ").replace(/\s+/g, " ").trim())
+    .map((block) => collectTextFragments(block).join(" ").replace(/\s+/g, " ").trim())
     .filter(Boolean);
   return lines.join("\n");
 }
