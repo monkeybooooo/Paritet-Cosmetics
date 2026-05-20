@@ -39,7 +39,4 @@ Paritet-Cosmetics/
 ## Скриншот
 ![Desktop preview](screenshots/desktop-preview.png)
 
-## Планы
-- Отдельная адаптация под mobile
-- Полировка контента и типографики
-- Финальная оптимизация производительности
+
