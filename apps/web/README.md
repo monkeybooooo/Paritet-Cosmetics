@@ -9,7 +9,6 @@ Frontend-часть проекта Paritet Cosmetic на Next.js.
 
 ## Доступ
 - Онлайн-демо: пока не опубликовано.
-- Локальная проверка: `http://localhost:3000`.
 
 ## Технологии
 - Next.js
@@ -17,17 +16,8 @@ Frontend-часть проекта Paritet Cosmetic на Next.js.
 - TypeScript
 - Tailwind CSS
 
-## Команды
-```bash
-npm install
-npm run dev
-npm run build
-npm run start
-npm run lint
-```
-
 ## Переменные окружения
-Создайте `.env.local` на основе `.env.example`.
+Используется файл `.env.local` на базе `.env.example`.
 Секреты и реальные ключи в репозиторий не добавляются.
 
 ## Примечание
