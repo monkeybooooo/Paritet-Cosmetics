@@ -28,6 +28,15 @@ export default async function LuxuryBrandPage({
 
   const currentBrand = brands.find((brand) => brand.slug === brandSlug);
   const title = currentBrand?.name || products[0].brandName;
+  const parseVolume = (value: string): number => {
+    const parsed = Number(String(value).replace(",", ".").match(/\d+(\.\d+)?/)?.[0] ?? "");
+    return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+  };
+  const sortedProducts = [...products].sort((a, b) => {
+    const byVolume = parseVolume(a.volumeLabel) - parseVolume(b.volumeLabel);
+    if (byVolume !== 0) return byVolume;
+    return a.name.localeCompare(b.name, "ru");
+  });
 
   return (
     <main className="min-h-screen bg-[var(--page-bg)] p-[clamp(0.5rem,1vw,1rem)]">
@@ -72,7 +81,7 @@ export default async function LuxuryBrandPage({
           </div>
 
           <div className="mt-[clamp(2rem,3.5vw,3.2rem)] grid grid-cols-1 gap-y-[clamp(2.8rem,6vw,6rem)] md:grid-cols-2 md:gap-x-[clamp(4rem,9vw,8rem)] md:gap-y-[clamp(3.5rem,7vw,7rem)] xl:grid-cols-3 xl:gap-x-[clamp(6rem,12vw,12rem)] xl:gap-y-[clamp(4rem,8vw,8.5rem)]">
-            {products.map((product) => (
+            {sortedProducts.map((product) => (
               <Link
                 key={product.id}
                 href={`/catalog/luxury/${brandSlug}/${product.slug}`}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { fetchLifestyleProductBySlug, fetchLifestyleRelatedProducts, getLifestyleDisplayProductTitle } from "../../data";
 import CatalogDropdown from "../../../../components/CatalogDropdown";
 import { getDetailBottleImageClassWithBrand } from "../../../imageFit";
+import ProductBadges from "../../../components/ProductBadges";
 
 function NavLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -81,66 +82,73 @@ export default async function LifestyleProductPage({
         </header>
 
         <section className="min-h-0 flex-1 overflow-hidden pt-[clamp(0.7rem,1.1vw,1.2rem)]">
-          <div className="relative z-20 flex flex-wrap items-baseline justify-between gap-3">
-            <h1
-              className="text-[clamp(2.1rem,3vw,3.6rem)] leading-[0.95] tracking-[0.025em] text-[#141210]"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {product.brandName}
-            </h1>
-
-            <nav
-              className="flex flex-wrap items-center gap-2 text-[clamp(0.86rem,0.95vw,0.95rem)] leading-none tracking-[0.055em] text-[#3a3632]"
-              style={{ fontFamily: "var(--font-display)" }}
-              aria-label="Хлебные крошки"
-            >
-              <Link href="/" className="hover:opacity-70">Косметика</Link>
-              <span>&gt;</span>
-              <Link href="/catalog/lifestyle" className="hover:opacity-70">Лайфстайл коллекция</Link>
-              <span>&gt;</span>
-              <Link href={`/catalog/lifestyle/${brandSlug}`} className="hover:opacity-70">{product.brandName}</Link>
-            </nav>
-          </div>
-
-          <div className="mt-[clamp(0.7rem,1vw,0.95rem)] grid h-full grid-cols-1 gap-[clamp(1.2rem,2.4vw,2.2rem)] lg:grid-cols-[minmax(20rem,0.9fr)_minmax(24rem,1.1fr)]">
-            <div className="relative z-20 flex flex-col justify-start">
+          <div className="relative z-20 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1
+                className="text-[clamp(2.1rem,3vw,3.6rem)] leading-[0.95] tracking-[0.025em] text-[#141210]"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {product.brandName}
+              </h1>
               <h2
-                className="text-[clamp(1.7rem,2.3vw,2.7rem)] leading-[0.95] tracking-[0.02em] text-[#141210]"
+                className="mt-[clamp(0.45rem,0.8vw,0.8rem)] text-[clamp(1.7rem,2.3vw,2.7rem)] leading-[0.95] tracking-[0.02em] text-[#141210]"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {displayProductTitleWithoutBrand || displayProductTitle}
               </h2>
+            </div>
 
-              {volumeOptions.length > 1 ? (
-                <div className="mt-[clamp(0.9rem,1.3vw,1.15rem)] mb-[clamp(1.5rem,3.4vw,3.2rem)] flex flex-wrap items-center gap-[clamp(0.55rem,0.8vw,0.8rem)]">
-                  <p
-                    className="mr-[clamp(0.15rem,0.4vw,0.35rem)] text-[clamp(0.9rem,1vw,1.02rem)] tracking-[0.04em] text-[#1a1816]"
-                    style={{ fontFamily: "var(--font-body)", fontWeight: 600 }}
-                  >
-                    Объём:
-                  </p>
-                  {volumeOptions.map((item) => {
-                    const isActive = item.slug === product.slug;
-                    return (
-                      <Link
-                        key={item.slug}
-                        href={`/catalog/lifestyle/${brandSlug}/${item.slug}`}
-                        className={`rounded-[999px] px-[clamp(0.7rem,0.95vw,1rem)] py-[clamp(0.38rem,0.55vw,0.52rem)] text-[clamp(0.95rem,1.04vw,1.08rem)] leading-none transition-colors ${
-                          isActive
-                            ? "border border-black bg-black text-white"
-                            : "border border-black/35 text-[#141210] hover:bg-black/[0.05]"
-                        }`}
-                        style={{ fontFamily: "var(--font-body)", fontWeight: 600 }}
-                      >
-                        {item.volumeLabel}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
+            <div className="flex flex-col items-end gap-2">
+              <nav
+                className="flex flex-wrap items-center gap-2 text-[clamp(0.86rem,0.95vw,0.95rem)] leading-none tracking-[0.055em] text-[#3a3632]"
+                style={{ fontFamily: "var(--font-display)" }}
+                aria-label="Хлебные крошки"
+              >
+                <Link href="/" className="hover:opacity-70">Косметика</Link>
+                <span>&gt;</span>
+                <Link href="/catalog/lifestyle" className="hover:opacity-70">Лайфстайл коллекция</Link>
+                <span>&gt;</span>
+                <Link href={`/catalog/lifestyle/${brandSlug}`} className="hover:opacity-70">{product.brandName}</Link>
+              </nav>
+
+              <ProductBadges brandName={product.brandName} brandSlug={brandSlug} collection="lifestyle" size="large" />
+            </div>
+          </div>
+
+          <div className="mt-[clamp(0.7rem,1vw,0.95rem)] grid h-full grid-cols-1 gap-[clamp(1.2rem,2.4vw,2.2rem)] lg:grid-cols-[minmax(20rem,0.9fr)_minmax(24rem,1.1fr)]">
+            <div className="relative z-20 flex h-full flex-col">
+              <div>
+                {volumeOptions.length > 1 ? (
+                  <div className="mb-[clamp(1.5rem,3.4vw,3.2rem)] flex flex-wrap items-center gap-[clamp(0.55rem,0.8vw,0.8rem)]">
+                    <p
+                      className="mr-[clamp(0.15rem,0.4vw,0.35rem)] text-[clamp(0.9rem,1vw,1.02rem)] tracking-[0.04em] text-[#1a1816]"
+                      style={{ fontFamily: "var(--font-body)", fontWeight: 600 }}
+                    >
+                      Объём:
+                    </p>
+                    {volumeOptions.map((item) => {
+                      const isActive = item.slug === product.slug;
+                      return (
+                        <Link
+                          key={item.slug}
+                          href={`/catalog/lifestyle/${brandSlug}/${item.slug}`}
+                          className={`rounded-[999px] px-[clamp(0.7rem,0.95vw,1rem)] py-[clamp(0.38rem,0.55vw,0.52rem)] text-[clamp(0.95rem,1.04vw,1.08rem)] leading-none transition-colors ${
+                            isActive
+                              ? "border border-black bg-black text-white"
+                              : "border border-black/35 text-[#141210] hover:bg-black/[0.05]"
+                          }`}
+                          style={{ fontFamily: "var(--font-body)", fontWeight: 600 }}
+                        >
+                          {item.volumeLabel}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
 
               {descriptionLines.length > 0 ? (
-                <div className="mt-[clamp(0.75rem,1vw,1rem)] max-w-[52ch]">
+                <div className="mt-auto pb-[clamp(7rem,24vh,15rem)] max-w-[52ch]">
                   <ul className="space-y-[clamp(0.42rem,0.7vw,0.7rem)]">
                     {descriptionLines.map((line) => (
                       <li key={line} className="flex items-center gap-[clamp(0.65rem,0.9vw,0.9rem)]">
